@@ -9,4 +9,5 @@ Embedded coinimp miner with banano rewards
 
 # Sending
 Sending is working via Reddit PM to /u/Banano_Tipbot
+
 Run send_banano.php with cron every 5 minutes.
