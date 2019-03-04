@@ -1,0 +1,53 @@
+/* Common styles */
+body {
+        font-family: sans-serif;
+        text-align:center;
+}
+
+/* Table with data and with grid */
+.data_table {
+        border: 1px solid gray;
+        border-collapse: collapse;
+}
+.data_table tr, .data_table td, .data_table th {
+        border: 1px solid gray;
+        padding: 0.5px 1em;
+}
+
+/* Popup QR from https://www.w3schools.com/css/css_tooltip.asp */
+
+.url_with_qr_container {
+        position: relative;
+        display: inline-block;
+        border-bottom: 1px dotted black;
+}
+
+/* Tooltip text */
+.url_with_qr_container .qr {
+        visibility: hidden;
+        border: 1px solid #888;
+        background-color: white;
+        text-align: center;
+        left: 50%;
+        padding: 1em;
+        border-radius: 6px;
+
+        position: absolute;
+        z-index: 1;
+}
+
+/* Show the tooltip text when you mouse over the tooltip container */
+.url_with_qr_container:hover .qr {
+        visibility: visible;
+}
+
+/* Coinimp miner style */
+.coinimp_miner {
+        background: #FFFF00;
+        border: #AAAAAA;
+        color: black;
+}
+
+.coinimp_miner td {
+        padding: 0.1em 1em;
+}
