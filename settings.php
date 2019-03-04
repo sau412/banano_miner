@@ -33,6 +33,6 @@ $reddit_password="=fMe5";
 
 $reddit_secret="";
 
-$reddit_useragent="Linux:banano_sender_bot:v_0 (by /u/YOUR_BOT_REDDIT_USERNAME_HERE)";
+$reddit_useragent="Linux:banano_sender_bot:v_0 (by /u/YOUR_REDDIT_USERNAME_HERE)";
 
 ?>
