@@ -14,7 +14,7 @@ $site_name="$currency_name miner";
 
 // Payout options
 $min_payout=0.01;
-$coin_per_mhash=1;
+$coin_per_mhash=5.83; // actual rate for 4th of March 2019
 
 // Coinimp keys
 $coinimp_public_key="";
