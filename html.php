@@ -40,6 +40,7 @@ _END;
 function html_coinimp_frame($asset,$user_id) {
         global $coinimp_xmr_site_key;
         global $coinimp_web_site_key;
+        global $coin_per_mhash;
 
         if($asset=="xmr") { $site_key=$coinimp_xmr_site_key; $param="{throttle:0,ads:0}"; }
         if($asset=="web") { $site_key=$coinimp_web_site_key; $param="{throttle:0,ads:0,c:'w'}"; }
@@ -49,7 +50,7 @@ function html_coinimp_frame($asset,$user_id) {
 <p>
 <table class='coinimp_miner'>
 <tr><th colspan=4 align=center>Banano miner</th></tr>
-<tr><td align=center>Hashes/s</td><td align=center>Total</td><td align=center>Threads</td><td align=center>Speed</td></tr>
+<tr><td align=center>&micro;BAN/s</td><td align=center>Total BAN</td><td align=center>Threads</td><td align=center>Speed</td></tr>
 <tr>
         <td align=center><span id='${asset}_speed'>0</span></td>
         <td align=center><span id='${asset}_total'>0</span></td>
@@ -102,8 +103,8 @@ function ${asset}_decrease_throttle() {
 function ${asset}_update_stats() {
         if( typeof ${asset}_client === "undefined") return;
 
-        document.getElementById('${asset}_speed').innerHTML=Math.round(${asset}_client.getHashesPerSecond()*10)/10;
-        document.getElementById('${asset}_total').innerHTML=${asset}_client.getTotalHashes();
+        document.getElementById('${asset}_speed').innerHTML=Math.round(${asset}_client.getHashesPerSecond()*$coin_per_mhash*10)/10;
+        document.getElementById('${asset}_total').innerHTML=Math.round(${asset}_client.getTotalHashes()*$coin_per_mhash)/1000000;
         document.getElementById('${asset}_threads').innerHTML=${asset}_client.getNumThreads();
         document.getElementById('${asset}_throttle').innerHTML=Math.round((1-${asset}_client.getThrottle())*100);
         if(${asset}_client.isRunning()) {
@@ -150,7 +151,7 @@ function disable_auto_updates() {
 </script>
 
 <hr width=10%>
-<p>Opensource browser mining site (<a href='https://github.com/sau412/banano_miner'>github link</a>) by Vladimir Tsarev, my nickname is sau412 on telegram, twitter, facebook, gmail, github, vk.</p>
+<p>Opensource banano browser mining resource (<a href='https://github.com/sau412/banano_miner'>github link</a>) by Vladimir Tsarev, my nickname is sau412 on telegram, twitter, facebook, gmail, github, vk.</p>
 </center>
 </body>
 </html>
