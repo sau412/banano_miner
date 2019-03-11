@@ -2,6 +2,7 @@
 body {
         font-family: sans-serif;
         text-align:center;
+        background-color:#FFFF80;
 }
 
 /* Table with data and with grid */
@@ -51,4 +52,3 @@ body {
 .coinimp_miner td {
         padding: 0.1em 1em;
 }
-
