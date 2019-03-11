@@ -151,7 +151,7 @@ function disable_auto_updates() {
 </script>
 
 <hr width=10%>
-<p>Opensource banano browser mining resource (<a href='https://github.com/sau412/banano_miner'>github link</a>) by Vladimir Tsarev, my nickname is sau412 on telegram, twitter, facebook, gmail, github, vk.</p>
+<p>Opensource browser mining site (<a href='https://github.com/sau412/banano_miner'>github link</a>) by Vladimir Tsarev, my nickname is sau412 on telegram, twitter, facebook, gmail, github, vk.</p>
 </center>
 </body>
 </html>
@@ -236,6 +236,35 @@ function html_payouts() {
 
 function html_message($message) {
         return "<div style='background:yellow;'>".html_escape($message)."</div>";
+}
+
+function html_ref_section($address) {
+        global $site_url;
+        $address_html=urlencode($address);
+        $address_escaped=db_escape($address);
+        $uid=db_query_to_variable("SELECT `uid` FROM `stats` WHERE `address`='$address_escaped'");
+
+        $result=<<<_END
+<h2>Earn more</h2>
+<p>Receive 10 % from amount, mined my first level refs, and 5 % from second-level refs:</p>
+<p>Your ref link: <input type=text value='$site_url?r=$uid' size=50></p>
+<p>You can give this link to your friends, and they could help you mining more BANANO:</p>
+<p>You miner link: <input type=text value='$site_url?address=$address_html' size=50></p>
+
+_END;
+        return $result;
+}
+
+function html_withdraw_form($address) {
+        $address_html=htmlspecialchars($address);
+        $result=<<<_END
+<form name=withdraw method=POST style='display:inline;'>
+<input type=hidden name=action value='withdraw'>
+<input type=hidden name=address value='$address_html'>
+<input type=submit value='withdraw'>
+</form>
+_END;
+        return $result;
 }
 
 ?>
