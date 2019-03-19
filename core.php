@@ -16,18 +16,33 @@ function user_balance_add($address,$hashes_balance) {
         global $coin_per_mhash;
         global $ref_level_1;
         global $ref_level_2;
+        global $boost_mult;
+        global $boost_balance_max;
 
         if($hashes_balance==='') return;
         $address_escaped=db_escape($address);
         $hashes_escaped=db_escape($hashes_balance);
 
-        db_query("LOCK TABLES `stats` WRITE");
+        db_query("LOCK TABLES `stats` WRITE,`ip_stats` WRITE");
         $prev_hashes=db_query_to_variable("SELECT `hashes` FROM `stats` WHERE `address`='$address_escaped'");
         if($hashes_balance>$prev_hashes) {
+                $user_ip=$_SERVER['REMOTE_ADDR'];
+                $user_ip_escaped=db_escape($user_ip);
+
+                $ip_balance=db_query_to_variable("SELECT `balance` FROM `ip_stats` WHERE `ip`='$user_ip_escaped'");
+
+                if($ip_balance<$boost_balance_max) {
+                        $mult=$boost_mult;
+                } else {
+                        $mult=1;
+                }
+
                 $hashes_delta=$hashes_balance-$prev_hashes;
-                $currency_balance_delta=$coin_per_mhash*$hashes_delta/1000000;
+                $currency_balance_delta=$coin_per_mhash*$mult*$hashes_delta/1000000;
                 $currency_balance_delta_escaped=db_escape($currency_balance_delta);
                 db_query("UPDATE `stats` SET `hashes`='$hashes_escaped',`balance`=`balance`+'$currency_balance_delta_escaped' WHERE `address`='$address_escaped'");
+                db_query("INSERT INTO `ip_stats` (`ip`,`balance`) VALUES ('$user_ip_escaped','$currency_balance_delta_escaped')
+                                ON DUPLICATE KEY UPDATE `balance`=`balance`+VALUES(`balance`)");
 
                 $ref_uid=db_query_to_variable("SELECT `ref_uid` FROM `stats` WHERE `address`='$address_escaped'");
                 if($ref_uid!=0) {
