@@ -16,6 +16,8 @@ $site_url="https://bananominer.arikado.ru/";
 // Payout options
 $min_payout=0.01;
 $coin_per_mhash=5.83; // actual rate for 4th of March 2019
+$boost_mult=2;
+$boost_balance_max=20;
 
 $ref_level_1=0.1;
 $ref_level_2=0.05;
