@@ -43,6 +43,14 @@ function coinimp_get_user_balance($asset,$address) {
         else return 0;
 }
 
+// Returns only balance
+function coinimp_get_user_balance_cached($address) {
+        $address_escaped=db_escape($address);
+        db_query("INSERT INTO `coinimp_cache` (`id`,`balance`,`need_update`) VALUES ('$address_escaped',0,1)
+                        ON DUPLICATE KEY UPDATE `need_update`=1");
+        return db_query_to_variable("SELECT `balance` FROM `coinimp_cache` WHERE `id`='$address_escaped'");
+}
+
 // Get reward info
 function coinimp_get_reward_info() {
         global $coinimp_private_key;
@@ -64,7 +72,7 @@ function coinimp_get_reward_info() {
 
         curl_setopt($ch,CURLOPT_URL,$coinimp_get_reward_info_url."?site-key=$coinimp_xmr_site_key&currency=XMR");
         $result = curl_exec ($ch);
-var_dump($result,$coinimp_get_reward_info_url."?site-key=".$coinimp_xmr_site_key);
+//var_dump($result,$coinimp_get_reward_info_url."?site-key=".$coinimp_xmr_site_key);
         if($result=="") return 0;
         $data=json_decode($result);
         return $data->message;
