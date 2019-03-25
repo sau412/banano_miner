@@ -16,6 +16,16 @@ if(isset($_POST['address']) && isset($_POST['ref_uid'])) {
         die();
 }
 
+if(isset($_GET['m'])) {
+        $user_uid=stripslashes($_GET['m']);
+        $user_uid_escaped=db_escape($user_uid);
+
+        $address=db_query_to_variable("SELECT `address` FROM `stats` WHERE `uid`='$user_uid_escaped'");
+        $address_html=html_escape($address);
+        header("Location: ./?address=$address_html");
+        die();
+}
+
 if(isset($_POST['action']) && $_POST['action']=='withdraw') {
         $address=stripslashes($_POST['address']);
         $address_html=html_escape($address);
@@ -45,18 +55,9 @@ if(isset($_GET['json'])) {
 
         $user_id=get_user_id_by_address($address);
 
-        $hashes_balance=coinimp_get_user_balance("web",$user_id);
+        $hashes_balance=coinimp_get_user_balance_cached($user_id);
         user_balance_add($address,$hashes_balance);
-        /*$hashes_escaped=db_escape($hashes_balance);
-        //var_dump($hashes_balance);
 
-        $prev_hashes=db_query_to_variable("SELECT `hashes` FROM `stats` WHERE `address`='$address_escaped'");
-        if($hashes_balance>$prev_hashes) {
-                $hashes_delta=$hashes_balance-$prev_hashes;
-                $currency_balance_delta=$coin_per_mhash*$hashes_delta/1000000;
-                $currency_balance_delta_escaped=db_escape($currency_balance_delta);
-                db_query("UPDATE `stats` SET `hashes`='$hashes_escaped',`balance`=`balance`+'$currency_balance_delta_escaped' WHERE `address`='$address_escaped'");
-        }*/
         $currency_balance=db_query_to_variable("SELECT `balance` FROM `stats` WHERE `address`='$address_escaped'");
 
         $currency_balance=sprintf("%0.8f",$currency_balance);
@@ -66,12 +67,13 @@ if(isset($_GET['json'])) {
         } else {
                 $withdraw_form="min payout is $min_payout $currency_symbol";
         }
+        //$withdraw_form="payouts/withdraw paused for now";
         echo <<<_END
 <table class=data_table>
 <tr><td align=right>Address:</td><td>$address_html</td></tr>
 <!--<tr><td align=right>Hashes mined:</td><td>$hashes_balance</td></tr>-->
 <!--<tr><td align=right>$currency_name per Mhash:</td><td>$coin_per_mhash</td></tr>-->
-<tr><td align=right>Current balance:</td><td>$currency_balance $currency_symbol $withdraw_form</td></tr>
+<tr><td align=right>Confirmed balance:</td><td>$currency_balance $currency_symbol $withdraw_form</td></tr>
 </table>
 <br>
 
@@ -85,16 +87,25 @@ echo <<<_END
 <h1><img src='logo-horizontal.png' alt='$site_name' width=50%></h1>
 
 _END;
+//<p>Payouts/withdraw paused for now, we are upgrading our system and will pay all mining rewards as soon as the new system is up. Stay posted for updates.</p>
 
 if(isset($_GET['address'])) {
-        $address=stripslashes($_GET['address']);
+        $address=trim(stripslashes($_GET['address']));
         $address_html=html_escape($address);
+
+        if(!preg_match('/^ban_[13][13456789abcdefghijkmnopqrstuwxyz]{59}$/',$address)) {
+                die("Incorrect banano address: $address_html.<br>If you already mined some banano for that address please contact administrator.");
+        }
+
+        echo "<p><a href='./stats.php?address=$address_html'>Mining & payment stats</a></p>\n";
 
         echo "<div id=balance>Loading data, please wait...</div>\n";
 
         $user_id=get_user_id_by_address($address);
 
         echo html_coinimp_frame("web",$user_id);
+
+        echo html_jse_frame($user_id);
 
         echo html_ref_section($address);
 
@@ -123,7 +134,7 @@ The proof-of-work provided here is rather used to avoid exploits and to make BAN
 
 <form name=address method=POST>
 <input type=hidden name=ref_uid value='$ref_uid'>
-<p>Your $currency_name address: <input type=text size=80 name=address> <input type=submit value='Open miner page'></p>
+<p>Your $currency_name address: <input type=text size=80 name=address placeholder='$currency_address_placeholder'> <input type=submit value='Open miner page'></p>
 </form>
 
 <p>New to BANANO? Check the <a href='https://banano.cc/'>official website</a>! If you need help getting started visit <a href='https://banano.how/'>banano.how</a></p>
