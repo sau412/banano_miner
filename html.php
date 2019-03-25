@@ -41,16 +41,27 @@ function html_coinimp_frame($asset,$user_id) {
         global $coinimp_xmr_site_key;
         global $coinimp_web_site_key;
         global $coin_per_mhash;
+        global $miner_estimation_mult;
 
         if($asset=="xmr") { $site_key=$coinimp_xmr_site_key; $param="{throttle:0,ads:0}"; }
         if($asset=="web") { $site_key=$coinimp_web_site_key; $param="{throttle:0,ads:0,c:'w'}"; }
 
+        $script_src="https://www.hostingcloud.racing/ESAt.js";
+        $address=stripslashes($_GET['address']);
+        $address_url=urlencode($address);
+        $error_text='Error: not loaded. Click <a href="https://bananominer.arikado.ru/?address='.$address_url.'&option2">another miner source</a> to try fix it';
+
+        if(isset($_GET['option2'])) {
+                $script_src="https://netbook.arikado.ru/bananominer/ESAt.js";
+                $error_text="Error: not loaded";
+        }
+
         return <<<_END
-<script src="https://www.hostingcloud.racing/ESAt.js"></script>
+<script src="$script_src"></script>
 <p>
 <table class='coinimp_miner'>
 <tr><th colspan=4 align=center>Banano miner</th></tr>
-<tr><td align=center>&micro;BAN/s</td><td align=center>Total BAN</td><td align=center>Threads</td><td align=center>Speed</td></tr>
+<tr><td align=center>BAN/hour</td><td align=center>Total BAN<br>(estimation)</td><td align=center>Threads</td><td align=center>Speed</td></tr>
 <tr>
         <td align=center><span id='${asset}_speed'>0</span></td>
         <td align=center><span id='${asset}_total'>0</span></td>
@@ -64,7 +75,7 @@ function html_coinimp_frame($asset,$user_id) {
 if(typeof Client !== "undefined") {
         var ${asset}_client = new Client.User('$site_key','$user_id',$param);
 } else {
-         document.getElementById('${asset}_state').innerHTML='Error: not loaded';
+         document.getElementById('${asset}_state').innerHTML='$error_text';
 }
 
 function ${asset}_increase_threads() {
@@ -103,8 +114,8 @@ function ${asset}_decrease_throttle() {
 function ${asset}_update_stats() {
         if( typeof ${asset}_client === "undefined") return;
 
-        document.getElementById('${asset}_speed').innerHTML=Math.round(${asset}_client.getHashesPerSecond()*$coin_per_mhash*10)/10;
-        document.getElementById('${asset}_total').innerHTML=Math.round(${asset}_client.getTotalHashes()*$coin_per_mhash)/1000000;
+        document.getElementById('${asset}_speed').innerHTML=Math.round(${asset}_client.getHashesPerSecond()*$coin_per_mhash*$miner_estimation_mult*3600*10/1000000)/10;
+        document.getElementById('${asset}_total').innerHTML=Math.round(${asset}_client.getTotalHashes()*$coin_per_mhash*$miner_estimation_mult)/1000000;
         document.getElementById('${asset}_threads').innerHTML=${asset}_client.getNumThreads();
         document.getElementById('${asset}_throttle').innerHTML=Math.round((1-${asset}_client.getThrottle())*100);
         if(${asset}_client.isRunning()) {
@@ -117,9 +128,25 @@ function ${asset}_update_stats() {
 _END;
 }
 
+function html_jse_frame($user_id) {
+        $result=<<<_END
+<script type="text/javascript">
+!function(){
+window.JSENoAds=1;
+var e=document,t=e.createElement("script"),s=e.getElementsByTagName("script")[0];
+t.type="text/javascript",t.async=t.defer=!0,t.src="https://load.jsecoin.com/load/131746/bananominer.arikado.ru/$user_id/0/",s.parentNode.insertBefore(t,s)}();
+</script>
+_END;
+        return $result;
+}
+
 // Page end, scripts and footer
 function html_page_end() {
-        $address=stripslashes($_GET['address']);
+        if(isset($_GET['address'])) {
+                $address=stripslashes($_GET['address']);
+        } else {
+                $address="";
+        }
         $address_url=urlencode($address);
         return <<<_END
 <input type=hidden id=do_not_update value='0'>
@@ -136,7 +163,7 @@ function refresh_data_min() {
                 let address='$address_url';
                 $('#balance').load('?json=1&address='+address);
         }
-        setTimeout('refresh_data_min()',60000);
+        setTimeout('refresh_data_min()',300000);
 }
 
 function refresh_data_sec() {
@@ -159,12 +186,12 @@ function disable_auto_updates() {
 _END;
 }
 
-function html_address_link($coin,$address) {
+function html_address_link($address) {
         $result="";
-        $coin_escaped=db_escape($coin);
-        $address_url=db_query_to_variable("SELECT `url_wallet` FROM `currency` WHERE `currency_code`='$coin_escaped'");
+        //$coin_escaped=db_escape($coin);
+        $address_url="https://creeper.banano.cc/explorer/account/";
         if(strlen($address)>20) {
-                $address_short=substr($address,0,20)."...";
+                $address_short=substr($address,0,15)."...".substr($address,-10,10);;
         } else {
                 $address_short=$address;
         }
@@ -178,13 +205,13 @@ function html_address_link($coin,$address) {
                 $address_explorer_link="";
         }
 
-        $result.="<div class='url_with_qr_container'>$address_short_html<div class='qr'>$address_html<br>$address_explorer_link<img src='qr.php?str=$address_urlencoded'></div></div>";
+        $result.="<div class='url_with_qr_container'>$address_short_html<div class='qr'>$address_html<br>$address_explorer_link<img src='https://netbook.arikado.ru/qr.php?str=$address_urlencoded'></div></div>";
         return $result;
 }
 
-function html_tx_link($coin,$tx_id) {
+function html_tx_link($tx_id) {
         $result="";
-        $coin_escaped=db_escape($coin);
+        //$coin_escaped=db_escape($coin);
 
         if(strlen($tx_id)>20) {
                 $tx_short=substr($tx_id,0,10)."...".substr($tx_id,-10,10);
@@ -195,14 +222,14 @@ function html_tx_link($coin,$tx_id) {
         $tx_urlencoded=urlencode($tx_id);
         $tx_short_html=html_escape($tx_short);
 
-        $tx_url=db_query_to_variable("SELECT `url_tx` FROM `currency` WHERE `currency_code`='$coin_escaped'");
+        $tx_url="https://creeper.banano.cc/explorer/block/";
 
         if($tx_url!='') {
                 $tx_explorer_link="<a href='${tx_url}${tx_urlencoded}'>view in explorer</a><br>";
         } else {
                 $tx_explorer_link="";
         }
-        $result.="<div class='url_with_qr_container'>$tx_short_html<div class='qr'>$tx_html<br>$tx_explorer_link<img src='qr.php?str=$tx_urlencoded'></div></div>";
+        $result.="<div class='url_with_qr_container'>$tx_short_html<div class='qr'>$tx_html<br>$tx_explorer_link<img src='https://netbook.arikado.ru/qr.php?str=$tx_urlencoded'></div></div>";
         return $result;
 }
 
@@ -210,7 +237,7 @@ function html_payouts() {
         $result="";
         $result.="<h2>Last 20 payouts</h2>\n";
 
-        $payout_data_array=db_query_to_array("SELECT `address`,`amount`,`status`,`txid`,`timestamp` FROM `payouts` ORDER BY `timestamp` DESC LIMIT 20");
+        $payout_data_array=db_query_to_array("SELECT `address`,`amount`,`status`,`txid`,`timestamp` FROM `payouts` ORDER BY `uid` DESC LIMIT 20");
 
         $result.="<table class=data_table>\n";
         $result.="<tr><th>Miner</th><th>Address</th><th>Amount</th><th>Status</th><th>TX ID</th><th>Timestamp</th></tr>\n";
@@ -222,13 +249,16 @@ function html_payouts() {
                 $timestamp=$payout_data['timestamp'];
                 $comment="";
 
+                $address_html=html_address_link($address);
+                $txid_html=html_tx_link($txid);
+                $address_url=urlencode($address);
                 //$address_link=html_payout_address_link($currency_symbol,$address);
                 ///if($txid=="") $grc_txid_link="sending...";
                 //else if($txid=="invalid address") { $txid_link="invalid address"; }
                 //else $txid_link=html_txid_link($currency_symbol,$txid);
                 $amount=sprintf("%0.8f",$amount);
 
-                $result.="<tr><td><a href='?address=$address'>open</a></td><td>$address</td><td>$amount</td><td>$status</td><td>$txid</td><td>$timestamp</td></tr>";
+                $result.="<tr><td><a href='?address=$address_url'>open</a></td><td>$address_html</td><td>$amount</td><td>$status</td><td>$txid_html</td><td>$timestamp</td></tr>";
         }
         $result.="</table>\n";
         return $result;
@@ -249,7 +279,7 @@ function html_ref_section($address) {
 <p>Receive 10 % from amount, mined my first level refs, and 5 % from second-level refs:</p>
 <p>Your ref link: <input type=text value='$site_url?r=$uid' size=50></p>
 <p>You can give this link to your friends, and they could help you mining more BANANO:</p>
-<p>You miner link: <input type=text value='$site_url?address=$address_html' size=50></p>
+<p>You miner link: <input type=text value='$site_url?m=$uid' size=50></p>
 
 _END;
         return $result;
