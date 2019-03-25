@@ -23,7 +23,7 @@ function user_balance_add($address,$hashes_balance) {
         $address_escaped=db_escape($address);
         $hashes_escaped=db_escape($hashes_balance);
 
-        db_query("LOCK TABLES `stats` WRITE,`ip_stats` WRITE");
+        //db_query("LOCK TABLES `stats` WRITE,`ip_stats` WRITE");
         $prev_hashes=db_query_to_variable("SELECT `hashes` FROM `stats` WHERE `address`='$address_escaped'");
         if($hashes_balance>$prev_hashes) {
                 $user_ip=$_SERVER['REMOTE_ADDR'];
@@ -64,10 +64,11 @@ function user_balance_add($address,$hashes_balance) {
                         }
                 }
         }
-        db_query("UNLOCK TABLES");
+        //db_query("UNLOCK TABLES");
 }
 
 function auth_log($message) {
+//      echo $message;
 }
 
 ?>
